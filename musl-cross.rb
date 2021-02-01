@@ -20,7 +20,7 @@ class MuslCross < Formula
 
   resource "linux-5.8.5.tar.xz" do
     url "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.5.tar.xz"
-    sha256 "014c2a22d9f8c9bd443b80eb1fb9cd58122ddae2acb82ea75635fa4f8d44a786"
+    sha256 "9d4ec36b158734f86e583a56f5a03721807d606ea1df6a97e6dd993ea605947f"
   end
 
   resource "mpfr-4.0.2.tar.bz2" do
