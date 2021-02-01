@@ -1,15 +1,9 @@
 class MuslCross < Formula
   desc "Linux cross compilers based on musl libc"
   homepage "https://github.com/richfelker/musl-cross-make"
-  url "https://github.com/richfelker/musl-cross-make/archive/v0.9.9.tar.gz"
-  sha256 "ff3e2188626e4e55eddcefef4ee0aa5a8ffb490e3124850589bcaf4dd60f5f04"
-  head "https://github.com/richfelker/musl-cross-make.git"
-
-  bottle do
-    root_url "https://dl.bintray.com/filosottile/generic"
-    cellar :any_skip_relocation
-    sha256 "a96a44828c95e76730fdaceb0c7aba425fd90807a344a0e1d5091069b78ff812" => :catalina
-  end
+  url "https://api.github.com/repos/lemonrock/musl-cross-make/tarball/41f51cb4c5fdd25ff4bf6d52030fd8c5452c14e4"
+  sha256 "4934df0af0f84acd00295ec396b53a6dfa7ef0c5b178e9f253a1f8ac13a4f400"
+  head "https://github.com/lemonrock/musl-cross-make.git"
 
   option "with-aarch64", "Build cross-compilers targeting arm-linux-muslaarch64"
   option "with-arm-hf", "Build cross-compilers targeting arm-linux-musleabihf"
@@ -24,9 +18,9 @@ class MuslCross < Formula
   depends_on "gnu-sed" => :build
   depends_on "make" => :build
 
-  resource "linux-4.19.88.tar.xz" do
-    url "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.19.88.tar.xz"
-    sha256 "c1923b6bd166e6dd07be860c15f59e8273aaa8692bc2a1fce1d31b826b9b3fbe"
+  resource "linux-5.8.5.tar.xz" do
+    url "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.5.tar.xz"
+    sha256 "014c2a22d9f8c9bd443b80eb1fb9cd58122ddae2acb82ea75635fa4f8d44a786"
   end
 
   resource "mpfr-4.0.2.tar.bz2" do
@@ -44,9 +38,9 @@ class MuslCross < Formula
     sha256 "5275bb04f4863a13516b2f39392ac5e272f5e1bb8057b18aec1c9b79d73d8fb2"
   end
 
-  resource "musl-1.2.0.tar.gz" do
-    url "https://www.musl-libc.org/releases/musl-1.2.0.tar.gz"
-    sha256 "c6de7b191139142d3f9a7b5b702c9cae1b5ee6e7f57e582da9328629408fd4e8"
+  resource "musl-1.2.2.tar.gz" do
+    url "https://www.musl-libc.org/releases/musl-1.2.2.tar.gz"
+    sha256 "9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
   end
 
   resource "binutils-2.33.1.tar.bz2" do
@@ -69,8 +63,6 @@ class MuslCross < Formula
     sha256 "d18ca11f8ad1a39ab6d03d3dcb3365ab416720fcb65b42d69f34f51bf0a0e859"
   end
 
-  patch :DATA # https://github.com/richfelker/musl-cross-make/pull/89
-
   def install
     targets = []
     targets.push "x86_64-linux-musl" if build.with? "x86_64"
@@ -89,19 +81,20 @@ class MuslCross < Formula
     end
 
     (buildpath/"config.mak").write <<~EOS
+      # Force version overrides
+      MUSL_VER = 1.2.2
+      LINUX_VER = 5.8.5
+      
       SOURCES = #{buildpath/"resources"}
       OUTPUT = #{libexec}
 
       # Drop some features for faster and smaller builds
-      COMMON_CONFIG += --disable-nls
-      GCC_CONFIG += --disable-libquadmath --disable-decimal-float
-      GCC_CONFIG += --disable-libitm --disable-fixed-point
+      #COMMON_CONFIG += --disable-nls
+      #GCC_CONFIG += --disable-libquadmath --disable-decimal-float
+      #GCC_CONFIG += --disable-libitm --disable-fixed-point
 
       # Keep the local build path out of binaries and libraries
       COMMON_CONFIG += --with-debug-prefix-map=#{buildpath}=
-
-      # Explicitly enable libisl support to avoid opportunistic linking
-      ISL_VER = 0.21
 
       # https://llvm.org/bugs/show_bug.cgi?id=19650
       # https://github.com/richfelker/musl-cross-make/issues/11
@@ -139,17 +132,3 @@ class MuslCross < Formula
     system "#{bin}/mips64el-linux-musl-cc", (testpath/"hello.c") if build.with? "mips64el"
   end
 end
-__END__
-diff --git a/Makefile b/Makefile
-index 3d688f7..e1d4c8e 100644
---- a/Makefile
-+++ b/Makefile
-@@ -26,7 +26,7 @@ LINUX_HEADERS_SITE = http://ftp.barfooze.de/pub/sabotage/tarballs/
- 
- DL_CMD = wget -c -O
- 
--COWPATCH = $(PWD)/cowpatch.sh
-+COWPATCH = $(CURDIR)/cowpatch.sh
- 
- HOST = $(if $(NATIVE),$(TARGET))
- BUILD_DIR = build/$(if $(HOST),$(HOST),local)/$(TARGET)
